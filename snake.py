@@ -29,7 +29,7 @@ class App:
         elif event.type == pygame.KEYDOWN:
             if not self.snake.alive:
                 self._running = False
-                if event.key == pygame.K_c:
+                if event.key != pygame.K_q:
                     self.restart = True
             else:
                 self.snake.change_direction(event)
@@ -46,7 +46,9 @@ class App:
         pygame.draw.rect(self._display_surf, self.food.color, self.food.dim)
         self.draw_snake()
         if not self.snake.alive:
-            self.message('You lose', (255, 0, 0))
+            self.message('Game Over', (255, 0, 0), -50)
+            self.message('Score {}'.format(self.snake.length), (0, 255, 0), 0)
+            self.message('Press any key to pay again or Q to quit', (255, 255, 255), +50)
         pygame.display.update()
         self.clock.tick(15)
 
@@ -72,16 +74,17 @@ class App:
     def on_cleanup():
         pygame.quit()
 
-    def message(self, msg, color):
+    def message(self, msg, color, y_displacement):
         text_surface = self.font.render(msg, True, color)
-        self._display_surf.blit(text_surface, (self.width / 2, self.height / 2))
+        text_rect = text_surface.get_rect()
+        text_rect.center = (self.width / 2, (self.height / 2) + y_displacement)
+        self._display_surf.blit(text_surface, text_rect)
 
     def check_boundary_condition(self):
-        if self.snake.head[0] < 0 or self.snake.head[0] >= self.width - self.block_size or \
-                self.snake.body[-1][1] < 0 or self.snake.body[-1][1] >= self.width - self.block_size:
+        if self.snake.head[0] < 0 or self.snake.head[0] > self.width - self.block_size or \
+                self.snake.body[-1][1] < 0 or self.snake.body[-1][1] > self.width - self.block_size:
             return False
-        if self.snake.head[0] == any(p[0] for p in self.snake.body[0]) and \
-            self.snake.head[1] == any(p[1] for p in self.snake.body[1]):
+        if self.snake.head in self.snake.body[:-2]:
             return False
         return True
 
@@ -92,10 +95,16 @@ class App:
 
     def add_food(self):
         if self.food is None:
-            self.food = Food(self.width, self.height, self.block_size)
+            x = round(random.randint(0, self.width - self.block_size) / 10.0) * 10.0
+            y = round(random.randint(0, self.height - self.block_size) / 10.0) * 10.0
+            if [x, y] not in self.snake.body:
+                self.food = Food(x, y, self.block_size)
+            else:
+                self.add_food()
 
     def eat_food(self):
-        if self.snake.head[0] == self.food.dim[0] and self.snake.head[1] == self.food.dim[1]:
+        if self.food.dim[0] <= self.snake.head[0] <= self.food.dim[0] + self.block_size and \
+                self.food.dim[1] <= self.snake.head[1] <= self.food.dim[1] + self.block_size:
             self.snake.grow()
             self.food = None
             self.add_food()
@@ -118,7 +127,7 @@ class Snake:
         self.body = [self.head]
         self.color = 0, 0, 255
         self.dim = [x, y, block_size, block_size]
-        self.dx = 0
+        self.dx = 10
         self.dy = 0
         self.alive = True
         self.length = 1
@@ -162,9 +171,7 @@ class Food:
         Food object
     """
 
-    def __init__(self, screen_width, screen_height, block_size):
-        x = round(random.randint(0, screen_width - block_size) / 10.0) * 10.0
-        y = round(random.randint(0, screen_height - block_size) / 10.0) * 10.0
+    def __init__(self, x, y, block_size):
         width = block_size
         height = block_size
         self.color = 255, 0, 0
