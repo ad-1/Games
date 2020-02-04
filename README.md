@@ -2,4 +2,4 @@
 
 ## Snake
 
-<img src="" alt="Snake" width="250" />
+<img src="https://www.coolmathgames.com/sites/default/files/snake.png" alt="Snake" width="350" />
