@@ -1,5 +1,8 @@
 # Games
 
+Creating simple games in python. These projects will be used as the foundation for future machine learning projects.
+
 ## Snake
 
-<img src="https://www.coolmathgames.com/sites/default/files/snake.png" alt="Snake" width="350" />
+Classic game Snake recreated using pygame module. 
+
